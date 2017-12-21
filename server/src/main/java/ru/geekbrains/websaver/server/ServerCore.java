@@ -1,12 +1,15 @@
 package ru.geekbrains.websaver.server;
 
+import ru.geekbrains.websaver.common.DataExchangeSocketThread;
+import ru.geekbrains.websaver.common.DataExchangeSocketThreadListener;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
-public class ServerCore implements ServerSocketThreadListener, ServerDataThreadListener {
+public class ServerCore implements ServerSocketThreadListener, DataExchangeSocketThreadListener {
 
-    private final Vector<ServerDataThread> clients = new Vector<>();
+    private final Vector<DataExchangeSocketThread> clients = new Vector<>();
 
     public static void main(String[] args) {
         ServerCore serverCore = new ServerCore();
@@ -32,7 +35,7 @@ public class ServerCore implements ServerSocketThreadListener, ServerDataThreadL
     public void onAcceptedSocket(ServerSocketThread thread, ServerSocket serverSocket, Socket socket) {
         System.out.println("Клиент " + socket + " присоединился..");
         String threadName = "Socket thread: " + socket.getInetAddress() + ":" + socket.getPort();
-        new ServerDataThread(this, threadName, socket);
+        new ServerDataExchangeSocketThread(this, threadName, socket);
     }
 
     @Override
@@ -46,25 +49,25 @@ public class ServerCore implements ServerSocketThreadListener, ServerDataThreadL
     }
 
     @Override
-    public synchronized void onStartServerDataThread(ServerDataThread serverDataThread, Socket socket) {
+    public synchronized void onStartDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket) {
         System.out.println("На сервере начал работу поток для обмена данными с клиентом " + socket + "..");
     }
 
     @Override
-    public synchronized void onReadyServerDataThread(ServerDataThread serverDataThread, Socket socket) {
+    public synchronized void onReadyDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket) {
         System.out.println("На сервере поток для обмена данными с клиентом " + socket + " подготовлен к передаче данных..");
-        clients.add(serverDataThread);
+        clients.add(dataExchangeSocketThread);
     }
 
     @Override
-    public synchronized void onExceptionServerDataThread(ServerDataThread serverDataThread, Socket socket, Exception e) {
+    public synchronized void onExceptionDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Exception e) {
         System.out.println("Exception: " + e.getClass().getName() + ": " + e.getMessage());
     }
 
     @Override
-    public synchronized void onStopServerDataThread(ServerDataThread serverDataThread, Socket socket) {
+    public synchronized void onStopDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket) {
         System.out.println("На сервере завершил работу поток для обмена данными с клиентом " + socket + ".");
-        clients.remove(serverDataThread);
+        clients.remove(dataExchangeSocketThread);
     }
 
 

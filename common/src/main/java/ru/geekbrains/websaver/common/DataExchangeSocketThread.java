@@ -1,15 +1,15 @@
-package ru.geekbrains.websaver.server;
+package ru.geekbrains.websaver.common;
 
 import java.io.*;
 import java.net.Socket;
 
-public class ServerDataThread extends Thread {
-    private final ServerDataThreadListener eventListener;
+public class DataExchangeSocketThread extends Thread {
+    private final DataExchangeSocketThreadListener eventListener;
     private final Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
 
-    public ServerDataThread(ServerDataThreadListener eventListener, String name, Socket socket) {
+    public DataExchangeSocketThread(DataExchangeSocketThreadListener eventListener, String name, Socket socket) {
         super(name);
         this.eventListener = eventListener;
         this.socket = socket;
@@ -18,23 +18,23 @@ public class ServerDataThread extends Thread {
 
     @Override
     public void run() {
-        eventListener.onStartServerDataThread(this, socket);
+        eventListener.onStartDataExchangeSocketThread(this, socket);
         try {
             in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());
-            eventListener.onReadyServerDataThread(this, socket);
+            eventListener.onReadyDataExchangeSocketThread(this, socket);
             while (!isInterrupted()) {
 
             }
         } catch (IOException e) {
-            eventListener.onExceptionServerDataThread(this, socket, e);
+            eventListener.onExceptionDataExchangeSocketThread(this, socket, e);
         } finally {
             try {
                 socket.close();
             } catch (IOException e) {
-                eventListener.onExceptionServerDataThread(this, socket, e);
+                eventListener.onExceptionDataExchangeSocketThread(this, socket, e);
             }
-            eventListener.onStopServerDataThread(this, socket);
+            eventListener.onStopDataExchangeSocketThread(this, socket);
         }
     }
 
@@ -43,7 +43,7 @@ public class ServerDataThread extends Thread {
             out.writeUTF(msg);
             out.flush();
         } catch (IOException e) {
-            eventListener.onExceptionServerDataThread(this, socket, e);
+            eventListener.onExceptionDataExchangeSocketThread(this, socket, e);
             close();
         }
     }
@@ -53,7 +53,7 @@ public class ServerDataThread extends Thread {
         try {
             socket.close();
         } catch (IOException e) {
-            eventListener.onExceptionServerDataThread(this, socket, e);
+            eventListener.onExceptionDataExchangeSocketThread(this, socket, e);
         }
     }*/
 }
