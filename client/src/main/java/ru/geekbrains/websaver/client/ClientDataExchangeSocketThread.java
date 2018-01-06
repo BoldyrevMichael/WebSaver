@@ -6,7 +6,7 @@ import ru.geekbrains.websaver.common.DataExchangeSocketThreadListener;
 
 import java.net.Socket;
 
-public class ClientDataExchangeSocketThread extends DataExchangeSocketThread{
+public class ClientDataExchangeSocketThread extends DataExchangeSocketThread {
     public ClientDataExchangeSocketThread(DataExchangeSocketThreadListener eventListener, String name, Socket socket) {
         super(eventListener, name, socket);
     }

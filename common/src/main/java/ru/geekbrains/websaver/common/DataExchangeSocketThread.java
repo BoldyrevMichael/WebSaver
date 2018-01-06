@@ -18,12 +18,12 @@ public class DataExchangeSocketThread extends Thread {
     public void run() {
         eventListener.onStartDataExchangeSocketThread(this, socket);
         try (ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())){
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
             eventListener.onReadyDataExchangeSocketThread(this, socket);
             while (!isInterrupted()) {
 
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             eventListener.onExceptionDataExchangeSocketThread(this, socket, e);
         } finally {
             try {
