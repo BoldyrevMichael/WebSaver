@@ -11,4 +11,6 @@ public interface DataExchangeSocketThreadListener {
     void onExceptionDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Exception e);
 
     void onStopDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket);
+
+    void onReceiveMsg (DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object msg);
 }

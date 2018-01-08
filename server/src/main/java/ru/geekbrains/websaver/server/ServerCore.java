@@ -45,7 +45,6 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
     void register() {
 
 
-
     }
 
     @Override
@@ -81,30 +80,29 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
     }
 
     @Override
-    public synchronized void onStartDataExchangeSocketThread(DataExchangeSocketThread
-                                                                     dataExchangeSocketThread, Socket socket) {
+    public synchronized void onStartDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket) {
         System.out.println("На сервере начал работу поток для обмена данными с клиентом " + socket + "..");
     }
 
     @Override
-    public synchronized void onReadyDataExchangeSocketThread(DataExchangeSocketThread
-                                                                     dataExchangeSocketThread, Socket socket) {
+    public synchronized void onReadyDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket) {
         System.out.println("На сервере поток для обмена данными с клиентом " + socket + " подготовлен к передаче данных..");
         clients.add(dataExchangeSocketThread);
     }
 
     @Override
-    public synchronized void onExceptionDataExchangeSocketThread(DataExchangeSocketThread
-                                                                         dataExchangeSocketThread, Socket socket, Exception e) {
+    public synchronized void onExceptionDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Exception e) {
         System.out.println("Exception: " + e.getClass().getName() + ": " + e.getMessage());
     }
 
     @Override
-    public synchronized void onStopDataExchangeSocketThread(DataExchangeSocketThread
-                                                                    dataExchangeSocketThread, Socket socket) {
+    public synchronized void onStopDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket) {
         System.out.println("На сервере завершил работу поток для обмена данными с клиентом " + socket + ".");
         clients.remove(dataExchangeSocketThread);
     }
 
+    @Override
+    public void onReceiveMsg(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object msg) {
 
+    }
 }
