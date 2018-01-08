@@ -6,35 +6,33 @@ import java.awt.event.ActionListener;
 
 public class ClientController implements ActionListener {
 
-    ClientGUI clientGUI;
+    private ClientGUI clientGUI;
 
-    public void addClient(ClientGUI clientGUI) {
+    ClientController(ClientGUI clientGUI) {
         this.clientGUI = clientGUI;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
-        if (src == clientGUI.btnEntrance) {
+        if (src == clientGUI.btnRegistr) {
             register();
         } else if (src == clientGUI.btnEntrance) {
             login();
+        } else if (src == clientGUI.btnReg) {
+
+        } else if (src == clientGUI.btnIngoing) {
+
         } else {
             throw new RuntimeException("Unknown src = " + src);
         }
     }
 
     private void register() {
-        SwingUtilities.invokeLater(() -> {
-            clientGUI.welcomePanel.setVisible(false);
-            clientGUI.registrPanel.setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "registrPanel"));
     }
 
     private void login() {
-        SwingUtilities.invokeLater(() -> {
-            clientGUI.welcomePanel.setVisible(false);
-            clientGUI.entrancePanel.setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "entrancePanel"));
     }
 }
