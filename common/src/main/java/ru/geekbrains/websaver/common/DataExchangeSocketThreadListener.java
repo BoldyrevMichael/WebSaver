@@ -12,5 +12,5 @@ public interface DataExchangeSocketThreadListener {
 
     void onStopDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket);
 
-    void onReceiveMsg (DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object msg);
+    void onReceiveMsg (DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object parcel);
 }

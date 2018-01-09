@@ -1,14 +1,15 @@
 package ru.geekbrains.websaver.common;
 
+import java.util.Formatter;
+
 public class Messages {
 
     public static final String DELIMITER = ";";
     public static final String REGISTR_REQUEST = "/registr_request";
+    public static final String REGISTR_ERROR = "/registr_error";
+    public static final String REGISTR_OK = "/registr_ok";
     public static final String LOGIN_REQUEST = "/login_request";
-    public static final String AUTH_ERROR = "/auth_error";
-    public static final String USERS_LIST = "/user_list";
-    public static final String RECONNECT = "/reconnect";
-    public static final String BROADCAST = "/bcast";
+    public static final String LOGIN_ERROR = "/login_error";
     public static final String MSG_FORMAT_ERROR = "/msg_format_error";
 
     // /registr_request login password repeatepassword
@@ -17,7 +18,22 @@ public class Messages {
     }
 
     // /login_request login password
-    public static String getLoginRequest(String login, String password) {
-        return LOGIN_REQUEST + DELIMITER + login + DELIMITER + password;
+    public static String getLoginRequest(String login, String password, String date) {
+        return LOGIN_REQUEST + DELIMITER + login + DELIMITER + password + DELIMITER + date;
+    }
+
+    // /registr_error description
+    public static String getRegistrError(String description) {
+        return REGISTR_ERROR + DELIMITER + description;
+    }
+
+    // /registr_ok description
+    public static String getRegistrOk(String description) {
+        return REGISTR_OK + DELIMITER + description;
+    }
+
+    // /login_error description
+    public static String getLoginError(String description) {
+        return LOGIN_ERROR + DELIMITER + description;
     }
 }

@@ -44,7 +44,7 @@ public class ClientGUI extends JFrame {
     private final JPanel buttonPanel = new JPanel(new GridBagLayout());
     final JButton btnAddFiles = new JButton("Добавить Файл(ы)");
     final JButton btnDelFiles = new JButton("Удалить Файл(ы)");
-    final JButton btnSyncFiles = new JButton("Синхронизировать Файл(ы)");
+    final JButton btnGetFiles = new JButton("Скачать Файл(ы)");
     final JTable listOfFilesTable = new JTable();
     private final JScrollPane scrollListOfFilesTable = new JScrollPane(listOfFilesTable);
 
@@ -63,7 +63,7 @@ public class ClientGUI extends JFrame {
 
         buttonPanel.add(btnAddFiles, new GBC(0, 0).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
         buttonPanel.add(btnDelFiles, new GBC(0, 1).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
-        buttonPanel.add(btnSyncFiles, new GBC(0, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
+        buttonPanel.add(btnGetFiles, new GBC(0, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
         buttonPanel.setPreferredSize(new Dimension(200, 0));
         mainPanal.add(buttonPanel, BorderLayout.EAST);
         mainPanal.add(scrollListOfFilesTable, BorderLayout.CENTER);
@@ -106,7 +106,7 @@ public class ClientGUI extends JFrame {
         btnEntrance.addActionListener(clientController);
         btnAddFiles.addActionListener(clientController);
         btnDelFiles.addActionListener(clientController);
-        btnSyncFiles.addActionListener(clientController);
+        btnGetFiles.addActionListener(clientController);
         btnReg.addActionListener(clientController);
         btnIngoing.addActionListener(clientController);
 

@@ -24,8 +24,8 @@ public class DataExchangeSocketThread extends Thread {
             out = new ObjectOutputStream(socket.getOutputStream());
             eventListener.onReadyDataExchangeSocketThread(this, socket);
             while (!isInterrupted()) {
-                Object msg = in.readObject();
-                eventListener.onReceiveMsg(this, socket, msg);
+                Object parcel = in.readObject();
+                eventListener.onReceiveMsg(this, socket, parcel);
             }
         } catch (ClassNotFoundException | IOException e) {
             eventListener.onExceptionDataExchangeSocketThread(this, socket, e);

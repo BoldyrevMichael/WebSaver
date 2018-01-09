@@ -2,24 +2,23 @@ package ru.geekbrains.websaver.server;
 
 import ru.geekbrains.websaver.common.DataExchangeSocketThread;
 import ru.geekbrains.websaver.common.DataExchangeSocketThreadListener;
+import ru.geekbrains.websaver.common.Messages;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Vector;
 
 public class ServerCore implements ServerSocketThreadListener, DataExchangeSocketThreadListener {
 
     private static Connection connection;
+    private PreparedStatement ps;
     private final Vector<DataExchangeSocketThread> clients = new Vector<>();
 
     public static void main(String[] args) {
         ServerCore serverCore = new ServerCore();
         initDB();
-        ServerSocketThread serverSocketThread = new ServerSocketThread("ServerSocketThread", 8189, 2000, serverCore);
+        new ServerSocketThread("ServerSocketThread", 8189, 10000, serverCore);
     }
 
     private static void initDB() {
@@ -28,23 +27,18 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
             connection = DriverManager.getConnection("jdbc:sqlite:ClientsOfWebSaver.db");
             Statement stmt = connection.createStatement();
             stmt.execute("CREATE TABLE IF NOT EXISTS Clients (\n" +
-                    "    idOfClient      INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
+                    "    idOfClient      INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                     "    login           TEXT UNIQUE ON CONFLICT FAIL,\n" +
                     "    password        TEXT,\n" +
                     "    volumeOfData    DECIMAL(14,2),\n" +
-                    "    numberOfFiles   INTEGER;");
+                    "    numberOfFiles   INTEGER);");
             stmt.execute("CREATE TABLE IF NOT EXISTS timeOfVisits (\n" +
-                    "    idOfVisit       INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
-                    "    loginOfClient   INTEGER REFERENCES Clients(login) ON DELETE CASCADE,\n" +
+                    "    idOfVisit       INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
+                    "    loginOfClient   INTEGER REFERENCES Clients(login) ON DELETE CASCADE ON UPDATE CASCADE,\n" +
                     "    timeOfLastVisit INTEGER);");
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    void register() {
-
-
     }
 
     @Override
@@ -102,7 +96,55 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
     }
 
     @Override
-    public void onReceiveMsg(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object msg) {
-
+    public void onReceiveMsg(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object parcel) {
+        if (parcel instanceof String) {
+            String[] tokens = ((String) parcel).split(Messages.DELIMITER);
+            String type = tokens[0];
+            switch (type) {
+                case Messages.LOGIN_REQUEST:
+                    try {
+                        ps = connection.prepareStatement("SELECT * FROM Clients WHERE login = ? AND password = ?");
+                        ps.setString(1, tokens[1]);
+                        ps.setString(2, tokens[2]);
+                        ResultSet res1 = ps.executeQuery();
+                        if (res1.next()) {
+                            ps = connection.prepareStatement("INSERT INTO timeOfVisits (loginOfClient, timeOfLastVisit) VALUES (?,?);");
+                            ps.setString(1, tokens[1]);
+                            ps.setString(2, tokens[3]);
+                            ps.executeUpdate();
+                        } else {
+                            dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином не зарегистрирован!"));
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case Messages.REGISTR_REQUEST:
+                    if (!tokens[2].equals(tokens[3])) {
+                        Messages.getRegistrError("Пароли не совпадают!");
+                    } else {
+                        try {
+                            ps = connection.prepareStatement("SELECT * FROM Clients WHERE login = ?");
+                            ps.setString(1, tokens[1]);
+                            ResultSet res1 = ps.executeQuery();
+                            if (!res1.next()) {
+                                ps = connection.prepareStatement("INSERT INTO Clients (login, password, volumeOfData, numberOfFiles) VALUES (?,?,?,?);");
+                                ps.setString(1, tokens[1]);
+                                ps.setString(2, tokens[2]);
+                                ps.setDouble(3, 0);
+                                ps.setInt(4, 0);
+                                ps.executeUpdate();
+                            } else {
+                                dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином уже зарегистрирован!"));
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
+                default:
+                    throw new RuntimeException("Unknown message type: " + type);
+            }
+        }
     }
 }

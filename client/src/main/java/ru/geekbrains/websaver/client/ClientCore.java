@@ -7,8 +7,10 @@ import java.net.Socket;
 
 public class ClientCore implements DataExchangeSocketThreadListener {
 
+
+
     @Override
-    public void onReceiveMsg(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object msg) {
+    public void onReceiveMsg(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object parcel) {
 
     }
 
