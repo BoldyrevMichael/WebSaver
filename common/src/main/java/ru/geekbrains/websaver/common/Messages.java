@@ -10,7 +10,7 @@ public class Messages {
     public static final String REGISTR_OK = "/registr_ok";
     public static final String LOGIN_REQUEST = "/login_request";
     public static final String LOGIN_ERROR = "/login_error";
-    public static final String MSG_FORMAT_ERROR = "/msg_format_error";
+    public static final String LOGIN_OK = "/login_ok";
 
     // /registr_request login password repeatepassword
     public static String getRegistrRequest(String login, String password, String repeatepassword) {
@@ -35,5 +35,10 @@ public class Messages {
     // /login_error description
     public static String getLoginError(String description) {
         return LOGIN_ERROR + DELIMITER + description;
+    }
+
+    // /login_ok description
+    public static String getLoginOk() {
+        return LOGIN_OK;
     }
 }

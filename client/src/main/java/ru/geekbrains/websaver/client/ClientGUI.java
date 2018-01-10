@@ -9,19 +9,19 @@ import java.awt.*;
 public class ClientGUI extends JFrame {
 
     public static void main(String[] args) {
-        ClientCore clientCore = new ClientCore();
         SwingUtilities.invokeLater(ClientGUI::new);
     }
 
     private final ClientController clientController = new ClientController(this);
+    final ClientCore clientCore = new ClientCore(clientController);
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
     private static final String TITLE = "WebSaver";
 
     private final JPanel welcomePanel = new JPanel(new BorderLayout(0, 200));
     private final JPanel welcomePanelbuttonPanel = new JPanel(new FlowLayout());
-    final JButton btnEntrance = new JButton("Вход");
-    final JButton btnRegistr = new JButton("Регистрация");
+    final JButton btnShowEntranceWindow = new JButton("Вход");
+    final JButton btnShowRegistrWindow = new JButton("Регистрация");
     private final JLabel labWelcome = new JLabel("Welcome to WebSaver!!!", JLabel.CENTER);
 
     private final JPanel registrPanel = new JPanel(new GridBagLayout());
@@ -38,7 +38,7 @@ public class ClientGUI extends JFrame {
     final JTextField fieldEntrLogin = new JTextField("логин");
     private final JLabel labEntrPass = new JLabel("Введите пароль: ", JLabel.RIGHT);
     final JPasswordField fieldEntrPass = new JPasswordField("пароль");
-    final JButton btnIngoing = new JButton("Войти");
+    final JButton btnLogin = new JButton("Войти");
 
     private final JPanel mainPanal = new JPanel(new BorderLayout());
     private final JPanel buttonPanel = new JPanel(new GridBagLayout());
@@ -85,12 +85,12 @@ public class ClientGUI extends JFrame {
         entrancePanel.add(labEntrPass, new GBC(0, 1).setFill(GBC.NONE).setAnchor(GBC.EAST).setInsets(10, 0, 10, 10));
         fieldEntrPass.setPreferredSize(new Dimension(250, 30));
         entrancePanel.add(fieldEntrPass, new GBC(1, 1).setFill(GBC.NONE).setAnchor(GBC.WEST).setInsets(10, 0, 10, 0));
-        entrancePanel.add(btnIngoing, new GBC(1, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(10, 0, 10, 0));
+        entrancePanel.add(btnLogin, new GBC(1, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(10, 0, 10, 0));
 
         labWelcome.setFont(new Font("Dialog", Font.BOLD, 50));
         welcomePanel.add(labWelcome, BorderLayout.NORTH);
-        welcomePanelbuttonPanel.add(btnEntrance);
-        welcomePanelbuttonPanel.add(btnRegistr);
+        welcomePanelbuttonPanel.add(btnShowEntranceWindow);
+        welcomePanelbuttonPanel.add(btnShowRegistrWindow);
         welcomePanel.add(welcomePanelbuttonPanel, BorderLayout.CENTER);
 
         cardPanel.add(welcomePanel, "welcomePanel");
@@ -102,13 +102,13 @@ public class ClientGUI extends JFrame {
 
         cardLayout.show(cardPanel, "welcomePanel");
 
-        btnRegistr.addActionListener(clientController);
-        btnEntrance.addActionListener(clientController);
+        btnShowRegistrWindow.addActionListener(clientController);
+        btnShowEntranceWindow.addActionListener(clientController);
         btnAddFiles.addActionListener(clientController);
         btnDelFiles.addActionListener(clientController);
         btnGetFiles.addActionListener(clientController);
         btnReg.addActionListener(clientController);
-        btnIngoing.addActionListener(clientController);
+        btnLogin.addActionListener(clientController);
 
         setVisible(true);
     }

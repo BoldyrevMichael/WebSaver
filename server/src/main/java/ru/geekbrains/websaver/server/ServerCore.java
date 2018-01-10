@@ -3,6 +3,7 @@ package ru.geekbrains.websaver.server;
 import ru.geekbrains.websaver.common.DataExchangeSocketThread;
 import ru.geekbrains.websaver.common.DataExchangeSocketThreadListener;
 import ru.geekbrains.websaver.common.Messages;
+import ru.geekbrains.websaver.common.NetworkProperties;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,7 +19,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
     public static void main(String[] args) {
         ServerCore serverCore = new ServerCore();
         initDB();
-        new ServerSocketThread("ServerSocketThread", 8189, 10000, serverCore);
+        new ServerSocketThread("ServerSocketThread", NetworkProperties.PORT, 10000, serverCore);
     }
 
     private static void initDB() {
@@ -112,8 +113,9 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                             ps.setString(1, tokens[1]);
                             ps.setString(2, tokens[3]);
                             ps.executeUpdate();
+                            dataExchangeSocketThread.sendMsg(Messages.getLoginOk());
                         } else {
-                            dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином не зарегистрирован!"));
+                            dataExchangeSocketThread.sendMsg(Messages.getLoginError("Пользователь с таким логином не зарегистрирован!"));
                         }
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -134,6 +136,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                                 ps.setDouble(3, 0);
                                 ps.setInt(4, 0);
                                 ps.executeUpdate();
+                                dataExchangeSocketThread.sendMsg(Messages.getRegistrOk("Вы успешно зарегистрировались!"));
                             } else {
                                 dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином уже зарегистрирован!"));
                             }
