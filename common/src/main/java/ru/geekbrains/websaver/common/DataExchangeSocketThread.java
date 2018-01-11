@@ -20,8 +20,8 @@ public class DataExchangeSocketThread extends Thread {
     public void run() {
         eventListener.onStartDataExchangeSocketThread(this, socket);
         try {
-            in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
             eventListener.onReadyDataExchangeSocketThread(this, socket);
             while (!isInterrupted()) {
                 Object parcel = in.readObject();

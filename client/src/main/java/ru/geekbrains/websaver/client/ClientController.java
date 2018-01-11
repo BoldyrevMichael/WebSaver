@@ -25,7 +25,7 @@ public class ClientController implements ActionListener {
                 clientGUI.fieldRegLogin.setEditable(false);
                 clientGUI.fieldRegPass.setEditable(false);
                 clientGUI.fieldRegRepPass.setEditable(false);
-                clientGUI.btnLogin.setVisible(false);
+                clientGUI.btnReg.setVisible(false);
             });
 
         } else if (src == clientGUI.btnLogin) {
@@ -63,7 +63,13 @@ public class ClientController implements ActionListener {
 
     void onRegOk(String msg) {
         JOptionPane.showMessageDialog(null, msg, "Успешная регистрация: ", JOptionPane.INFORMATION_MESSAGE);
-        SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "welcomePanel"));
+        SwingUtilities.invokeLater(() -> {
+            clientGUI.fieldRegLogin.setEditable(true);
+            clientGUI.fieldRegPass.setEditable(true);
+            clientGUI.fieldRegRepPass.setEditable(true);
+            clientGUI.btnReg.setVisible(true);
+            clientGUI.cardLayout.show(clientGUI.cardPanel, "welcomePanel");
+        });
     }
 
     void onRegError(String msg) {
@@ -72,7 +78,7 @@ public class ClientController implements ActionListener {
             clientGUI.fieldRegLogin.setEditable(true);
             clientGUI.fieldRegPass.setEditable(true);
             clientGUI.fieldRegRepPass.setEditable(true);
-            clientGUI.btnLogin.setVisible(true);
+            clientGUI.btnReg.setVisible(true);
         });
     }
 }
