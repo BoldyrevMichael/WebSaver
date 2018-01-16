@@ -1,8 +1,10 @@
 package ru.geekbrains.websaver.client;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 public class ClientController implements ActionListener {
 
@@ -27,7 +29,6 @@ public class ClientController implements ActionListener {
                 clientGUI.fieldRegRepPass.setEditable(false);
                 clientGUI.btnReg.setVisible(false);
             });
-
         } else if (src == clientGUI.btnLogin) {
             SwingUtilities.invokeLater(() -> {
                 clientGUI.fieldEntrLogin.setEditable(false);
@@ -35,6 +36,18 @@ public class ClientController implements ActionListener {
                 clientGUI.btnLogin.setVisible(false);
             });
             clientGUI.clientCore.login(clientGUI.fieldEntrLogin.getText(), new String(clientGUI.fieldEntrPass.getPassword()));
+        } else if (src == clientGUI.btnAddFiles) {
+            JFileChooser filechooser = new JFileChooser();
+            int ret = filechooser.showOpenDialog(null);
+            if (ret == JFileChooser.APPROVE_OPTION) {
+                File file = filechooser.getSelectedFile();
+                clientGUI.clientCore.addFile(file);
+                SwingUtilities.invokeLater(() -> clientGUI.listOfFilesTable.setGridColor(new Color(123)));
+            }
+        } else if (src == clientGUI.btnDelFiles) {
+
+        } else if (src == clientGUI.btnSaveFiles) {
+
         } else {
             throw new RuntimeException("Unknown src = " + src);
         }
@@ -49,6 +62,7 @@ public class ClientController implements ActionListener {
     }
 
     void onLoginOk() {
+
         SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "mainPanel"));
     }
 

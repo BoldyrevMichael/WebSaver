@@ -5,27 +5,30 @@ import ru.geekbrains.websaver.common.DataExchangeSocketThreadListener;
 import ru.geekbrains.websaver.common.Messages;
 import ru.geekbrains.websaver.common.NetworkProperties;
 
+import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 public class ServerCore implements ServerSocketThreadListener, DataExchangeSocketThreadListener {
 
-    private static Connection connection;
+    private Connection connection;
     private PreparedStatement ps;
+    private List<File> serverFilesList = new ArrayList<>();
     private final Vector<DataExchangeSocketThread> clients = new Vector<>();
 
     public static void main(String[] args) {
         ServerCore serverCore = new ServerCore();
-        initDB();
+        serverCore.initDB();
         new ServerSocketThread("ServerSocketThread", NetworkProperties.PORT, 10000, serverCore);
     }
 
-    private static void initDB() {
+    private void initDB() {
         try {
-            Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:ClientsOfWebSaver.db");
+            connect();
             Statement stmt = connection.createStatement();
             stmt.execute("CREATE TABLE IF NOT EXISTS Clients (\n" +
                     "    idOfClient      INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -37,7 +40,8 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                     "    idOfVisit       INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                     "    loginOfClient   INTEGER REFERENCES Clients(login) ON DELETE CASCADE ON UPDATE CASCADE,\n" +
                     "    timeOfLastVisit INTEGER);");
-        } catch (ClassNotFoundException | SQLException e) {
+            disconnect();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -103,51 +107,91 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
             String type = tokens[0];
             switch (type) {
                 case Messages.LOGIN_REQUEST:
-                    try {
-                        ps = connection.prepareStatement("SELECT * FROM Clients WHERE login = ? AND password = ?");
-                        ps.setString(1, tokens[1]);
-                        ps.setString(2, tokens[2]);
-                        ResultSet res1 = ps.executeQuery();
-                        if (res1.next()) {
-                            ps = connection.prepareStatement("INSERT INTO timeOfVisits (loginOfClient, timeOfLastVisit) VALUES (?,?);");
+                    synchronized (this) {
+                        try {
+                            connect();
+                            ps = connection.prepareStatement("SELECT * FROM Clients WHERE login = ? AND password = ?");
                             ps.setString(1, tokens[1]);
-                            ps.setString(2, tokens[3]);
-                            ps.executeUpdate();
-                            dataExchangeSocketThread.sendMsg(Messages.getLoginOk());
-                        } else {
-                            dataExchangeSocketThread.sendMsg(Messages.getLoginError("Пользователь с таким логином не зарегистрирован!"));
+                            ps.setString(2, tokens[2]);
+                            ResultSet res1 = ps.executeQuery();
+                            if (res1.next()) {
+                                ps = connection.prepareStatement("INSERT INTO timeOfVisits (loginOfClient, timeOfLastVisit) VALUES (?,?);");
+                                ps.setString(1, tokens[1]);
+                                ps.setString(2, tokens[3]);
+                                ps.executeUpdate();
+                                dataExchangeSocketThread.sendMsg(Messages.getLoginOk());
+                            } else {
+                                dataExchangeSocketThread.sendMsg(Messages.getLoginError("Пользователь с таким логином не зарегистрирован!"));
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        } finally {
+                            disconnect();
                         }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
                     }
                     break;
                 case Messages.REGISTR_REQUEST:
                     if (!tokens[2].equals(tokens[3])) {
                         Messages.getRegistrError("Пароли не совпадают!");
                     } else {
-                        try {
-                            ps = connection.prepareStatement("SELECT * FROM Clients WHERE login = ?");
-                            ps.setString(1, tokens[1]);
-                            ResultSet res1 = ps.executeQuery();
-                            if (!res1.next()) {
-                                ps = connection.prepareStatement("INSERT INTO Clients (login, password, volumeOfData, numberOfFiles) VALUES (?,?,?,?);");
+                        synchronized (this) {
+                            try {
+                                connect();
+                                ps = connection.prepareStatement("SELECT * FROM Clients WHERE login = ?");
                                 ps.setString(1, tokens[1]);
-                                ps.setString(2, tokens[2]);
-                                ps.setDouble(3, 0);
-                                ps.setInt(4, 0);
-                                ps.executeUpdate();
-                                dataExchangeSocketThread.sendMsg(Messages.getRegistrOk("Вы успешно зарегистрировались!"));
-                            } else {
-                                dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином уже зарегистрирован!"));
+                                ResultSet res1 = ps.executeQuery();
+                                if (!res1.next()) {
+                                    ps = connection.prepareStatement("INSERT INTO Clients (login, password, volumeOfData, numberOfFiles) VALUES (?,?,?,?);");
+                                    ps.setString(1, tokens[1]);
+                                    ps.setString(2, tokens[2]);
+                                    ps.setDouble(3, 0);
+                                    ps.setInt(4, 0);
+                                    ps.executeUpdate();
+                                    dataExchangeSocketThread.sendMsg(Messages.getRegistrOk("Вы успешно зарегистрировались!"));
+                                } else {
+                                    dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином уже зарегистрирован!"));
+                                }
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            } finally {
+                                disconnect();
                             }
-                        } catch (SQLException e) {
-                            e.printStackTrace();
                         }
                     }
+                    break;
+                case Messages.GET_FILES:
+                    dataExchangeSocketThread.sendMsg(serverFilesList);
                     break;
                 default:
                     throw new RuntimeException("Unknown message type: " + type);
             }
+        } else if (parcel instanceof File) {
+            File receivedFile = (File) parcel;
+            System.out.println("Получен файл " + receivedFile.getName());
+            if (serverFilesList.contains(receivedFile)) {
+                serverFilesList.remove(receivedFile);
+                System.out.println("Количество объектов после удаления " + serverFilesList.size());
+            } else {
+                serverFilesList.add(receivedFile);
+                System.out.println("Количество объектов после добавления " + serverFilesList.size());
+            }
+        }
+    }
+
+    private void connect() {
+        try {
+            Class.forName("org.sqlite.JDBC");
+            connection = DriverManager.getConnection("jdbc:sqlite:ClientsOfWebSaver.db");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void disconnect() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

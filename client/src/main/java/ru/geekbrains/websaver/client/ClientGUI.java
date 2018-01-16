@@ -44,8 +44,8 @@ public class ClientGUI extends JFrame {
     private final JPanel buttonPanel = new JPanel(new GridBagLayout());
     final JButton btnAddFiles = new JButton("Добавить Файл(ы)");
     final JButton btnDelFiles = new JButton("Удалить Файл(ы)");
-    final JButton btnGetFiles = new JButton("Скачать Файл(ы)");
-    final JTable listOfFilesTable = new JTable();
+    final JButton btnSaveFiles = new JButton("Скачать Файл(ы)");
+    final JTable listOfFilesTable = new JTable(new FileTableModel(clientCore));
     private final JScrollPane scrollListOfFilesTable = new JScrollPane(listOfFilesTable);
 
     final CardLayout cardLayout = new CardLayout();
@@ -63,9 +63,11 @@ public class ClientGUI extends JFrame {
 
         buttonPanel.add(btnAddFiles, new GBC(0, 0).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
         buttonPanel.add(btnDelFiles, new GBC(0, 1).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
-        buttonPanel.add(btnGetFiles, new GBC(0, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
+        buttonPanel.add(btnSaveFiles, new GBC(0, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
         buttonPanel.setPreferredSize(new Dimension(200, 0));
         mainPanal.add(buttonPanel, BorderLayout.EAST);
+        listOfFilesTable.getColumnModel().getColumn(0).setMaxWidth(60);
+        listOfFilesTable.getColumnModel().getColumn(1).setPreferredWidth(300);
         mainPanal.add(scrollListOfFilesTable, BorderLayout.CENTER);
 
         registrPanel.add(labRegLogin, new GBC(0, 0).setFill(GBC.NONE).setAnchor(GBC.EAST).setInsets(10, 0, 10, 10));
@@ -106,7 +108,7 @@ public class ClientGUI extends JFrame {
         btnShowEntranceWindow.addActionListener(clientController);
         btnAddFiles.addActionListener(clientController);
         btnDelFiles.addActionListener(clientController);
-        btnGetFiles.addActionListener(clientController);
+        btnSaveFiles.addActionListener(clientController);
         btnReg.addActionListener(clientController);
         btnLogin.addActionListener(clientController);
 

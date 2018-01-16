@@ -5,16 +5,20 @@ import ru.geekbrains.websaver.common.DataExchangeSocketThreadListener;
 import ru.geekbrains.websaver.common.Messages;
 import ru.geekbrains.websaver.common.NetworkProperties;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Formatter;
+import java.util.List;
 
 public class ClientCore implements DataExchangeSocketThreadListener {
 
     private ClientController clientController;
-    private Formatter fmt = new Formatter();
+    Formatter fmt = new Formatter();
     private ClientDataExchangeSocketThread clientDataExchangeSocketThread;
+    List<File> clientFilesList = new ArrayList<>();
 
     ClientCore(ClientController clientController) {
         connect();
@@ -39,6 +43,12 @@ public class ClientCore implements DataExchangeSocketThreadListener {
         clientDataExchangeSocketThread.sendMsg(Messages.getLoginRequest(login, pass, fmt.format("%tY.%tm.%td %tT %tA", calendar, calendar, calendar, calendar, calendar).toString()));
     }
 
+    void addFile(File file) {
+        if (clientFilesList.contains(file)) return;
+        clientFilesList.add(file);
+        clientDataExchangeSocketThread.sendMsg(file);
+    }
+
     @Override
     public void onReceiveMsg(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object parcel) {
         if (parcel instanceof String) {
@@ -60,6 +70,8 @@ public class ClientCore implements DataExchangeSocketThreadListener {
                 default:
                     throw new RuntimeException("Unknown message type: " + type);
             }
+        } else if (parcel instanceof List) {
+            clientFilesList = (List<File>) parcel;
         }
     }
 

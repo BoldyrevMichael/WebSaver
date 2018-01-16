@@ -11,6 +11,7 @@ public class Messages {
     public static final String LOGIN_REQUEST = "/login_request";
     public static final String LOGIN_ERROR = "/login_error";
     public static final String LOGIN_OK = "/login_ok";
+    public static final String GET_FILES = "/get_files";
 
     // /registr_request login password repeatepassword
     public static String getRegistrRequest(String login, String password, String repeatepassword) {
@@ -40,5 +41,10 @@ public class Messages {
     // /login_ok description
     public static String getLoginOk() {
         return LOGIN_OK;
+    }
+
+    // /get_files description
+    public static String getFiles() {
+        return GET_FILES;
     }
 }
