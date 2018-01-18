@@ -39,12 +39,12 @@ public class Messages {
     }
 
     // /login_ok description
-    public static String getLoginOk() {
-        return LOGIN_OK;
+    public static String getLoginOk(String login) {
+        return LOGIN_OK + DELIMITER + login;
     }
 
     // /get_files description
-    public static String getFiles() {
-        return GET_FILES;
+    public static String getFiles(String login) {
+        return GET_FILES + DELIMITER + login;
     }
 }

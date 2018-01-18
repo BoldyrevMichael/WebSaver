@@ -6,10 +6,13 @@ import ru.geekbrains.websaver.common.Messages;
 import ru.geekbrains.websaver.common.NetworkProperties;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -17,7 +20,6 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
 
     private Connection connection;
     private PreparedStatement ps;
-    private List<File> serverFilesList = new ArrayList<>();
     private final Vector<DataExchangeSocketThread> clients = new Vector<>();
 
     public static void main(String[] args) {
@@ -102,6 +104,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
 
     @Override
     public void onReceiveMsg(DataExchangeSocketThread dataExchangeSocketThread, Socket socket, Object parcel) {
+        ServerDataExchangeSocketThread serverDataExchangeSocketThread = (ServerDataExchangeSocketThread) dataExchangeSocketThread;
         if (parcel instanceof String) {
             String[] tokens = ((String) parcel).split(Messages.DELIMITER);
             String type = tokens[0];
@@ -119,7 +122,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                                 ps.setString(1, tokens[1]);
                                 ps.setString(2, tokens[3]);
                                 ps.executeUpdate();
-                                dataExchangeSocketThread.sendMsg(Messages.getLoginOk());
+                                dataExchangeSocketThread.sendMsg(Messages.getLoginOk(tokens[1]));
                             } else {
                                 dataExchangeSocketThread.sendMsg(Messages.getLoginError("Пользователь с таким логином не зарегистрирован!"));
                             }
@@ -147,6 +150,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                                     ps.setDouble(3, 0);
                                     ps.setInt(4, 0);
                                     ps.executeUpdate();
+                                    createClientDirectory(tokens[1]);
                                     dataExchangeSocketThread.sendMsg(Messages.getRegistrOk("Вы успешно зарегистрировались!"));
                                 } else {
                                     dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином уже зарегистрирован!"));
@@ -160,7 +164,8 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                     }
                     break;
                 case Messages.GET_FILES:
-                    dataExchangeSocketThread.sendMsg(serverFilesList);
+                    serverDataExchangeSocketThread.serverClientFilesList = getServerClientFilesList(tokens[1]);
+                    dataExchangeSocketThread.sendMsg(serverDataExchangeSocketThread.serverClientFilesList);
                     break;
                 default:
                     throw new RuntimeException("Unknown message type: " + type);
@@ -168,12 +173,12 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
         } else if (parcel instanceof File) {
             File receivedFile = (File) parcel;
             System.out.println("Получен файл " + receivedFile.getName());
-            if (serverFilesList.contains(receivedFile)) {
-                serverFilesList.remove(receivedFile);
-                System.out.println("Количество объектов после удаления " + serverFilesList.size());
+            if (serverDataExchangeSocketThread.serverClientFilesList.contains(receivedFile)) {
+                serverDataExchangeSocketThread.serverClientFilesList.remove(receivedFile);
+                System.out.println("Количество объектов после удаления " + serverDataExchangeSocketThread.serverClientFilesList.size());
             } else {
-                serverFilesList.add(receivedFile);
-                System.out.println("Количество объектов после добавления " + serverFilesList.size());
+                serverDataExchangeSocketThread.serverClientFilesList.add(receivedFile);
+                System.out.println("Количество объектов после добавления " + serverDataExchangeSocketThread.serverClientFilesList.size());
             }
         }
     }
@@ -193,5 +198,36 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void createClientDirectory(String login) {
+        int i;
+        StringBuffer stringBuffer = new StringBuffer();
+        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.txt")) {
+            while ((i = fileInputStream.read()) != -1) {
+                stringBuffer.append((char) i);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        stringBuffer.append("\\\\" + login);
+        new File(stringBuffer.toString()).mkdirs();
+    }
+
+    private ArrayList<File> getServerClientFilesList(String login) {
+        int i;
+        StringBuffer stringBuffer = new StringBuffer();
+        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.txt")) {
+            while ((i = fileInputStream.read()) != -1) {
+                stringBuffer.append((char) i);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        stringBuffer.append("\\\\" + login);
+        File clientDir = new File(stringBuffer.toString());
+        File[] clientFiles = clientDir.listFiles();
+        List<File> list = Arrays.asList(clientFiles);
+        return new ArrayList<>(list);
     }
 }

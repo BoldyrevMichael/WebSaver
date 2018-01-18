@@ -1,7 +1,6 @@
 package ru.geekbrains.websaver.client;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -42,7 +41,7 @@ public class ClientController implements ActionListener {
             if (ret == JFileChooser.APPROVE_OPTION) {
                 File file = filechooser.getSelectedFile();
                 clientGUI.clientCore.addFile(file);
-                SwingUtilities.invokeLater(() -> clientGUI.listOfFilesTable.setGridColor(new Color(123)));
+                repaintTable();
             }
         } else if (src == clientGUI.btnDelFiles) {
 
@@ -59,11 +58,6 @@ public class ClientController implements ActionListener {
 
     private void showEntranceWindow() {
         SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "entrancePanel"));
-    }
-
-    void onLoginOk() {
-
-        SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "mainPanel"));
     }
 
     void onLoginError(String msg) {
@@ -93,6 +87,17 @@ public class ClientController implements ActionListener {
             clientGUI.fieldRegPass.setEditable(true);
             clientGUI.fieldRegRepPass.setEditable(true);
             clientGUI.btnReg.setVisible(true);
+        });
+    }
+
+    void onGetList() {
+        SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "mainPanel"));
+        repaintTable();
+    }
+
+    private void repaintTable() {
+        SwingUtilities.invokeLater(() -> {
+            clientGUI.listOfFilesTable.repaint();
         });
     }
 }

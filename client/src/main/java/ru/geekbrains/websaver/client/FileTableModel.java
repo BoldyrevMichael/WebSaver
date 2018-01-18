@@ -2,24 +2,24 @@ package ru.geekbrains.websaver.client;
 
 import javax.swing.table.AbstractTableModel;
 import java.io.File;
-import java.util.Calendar;
-import java.util.Formatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FileTableModel extends AbstractTableModel {
 
     private List<File> filesList;
-    private Formatter fmtTableModel = new Formatter();
+    private List<String> lastModifTimes;
 
     FileTableModel(ClientCore clientCore) {
         super();
         filesList = clientCore.clientFilesList;
+        lastModifTimes = clientCore.lastModifTimes;
     }
 
     @Override
     public int getRowCount() {
         if (filesList != null) {
-            return filesList.size();
+            return filesList.size() + 1;
         } else {
             return 0;
         }
@@ -41,9 +41,7 @@ public class FileTableModel extends AbstractTableModel {
                 case 2:
                     return (double) filesList.get(rowIndex).length() / 1000;
                 case 3:
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.setTimeInMillis(filesList.get(rowIndex).lastModified());
-                    return fmtTableModel.format("%tY.%tm.%td %tT %tA", calendar, calendar, calendar, calendar, calendar).toString();
+                    return lastModifTimes.get(rowIndex);
                 default:
                     return null;
             }

@@ -18,7 +18,8 @@ public class ClientCore implements DataExchangeSocketThreadListener {
     private ClientController clientController;
     Formatter fmt = new Formatter();
     private ClientDataExchangeSocketThread clientDataExchangeSocketThread;
-    List<File> clientFilesList = new ArrayList<>();
+    List<File> clientFilesList;
+    List<String> lastModifTimes;
 
     ClientCore(ClientController clientController) {
         connect();
@@ -44,7 +45,9 @@ public class ClientCore implements DataExchangeSocketThreadListener {
     }
 
     void addFile(File file) {
-        if (clientFilesList.contains(file)) return;
+        if (clientFilesList.contains(file)) {
+            return;
+        }
         clientFilesList.add(file);
         clientDataExchangeSocketThread.sendMsg(file);
     }
@@ -56,7 +59,7 @@ public class ClientCore implements DataExchangeSocketThreadListener {
             String type = tokens[0];
             switch (type) {
                 case Messages.LOGIN_OK:
-                    clientController.onLoginOk();
+                    dataExchangeSocketThread.sendMsg(Messages.getFiles(tokens[1]));
                     break;
                 case Messages.LOGIN_ERROR:
                     clientController.onLoginError(tokens[1]);
@@ -72,6 +75,8 @@ public class ClientCore implements DataExchangeSocketThreadListener {
             }
         } else if (parcel instanceof List) {
             clientFilesList = (List<File>) parcel;
+            lastModifTimes = getLastModifTimes(clientFilesList);
+            clientController.onGetList();
         }
     }
 
@@ -93,5 +98,15 @@ public class ClientCore implements DataExchangeSocketThreadListener {
     @Override
     public void onStopDataExchangeSocketThread(DataExchangeSocketThread dataExchangeSocketThread, Socket socket) {
         System.out.println("На клиенте завершил работу поток для обмена данными с клиентом " + socket + ".");
+    }
+
+    List<String> getLastModifTimes(List<File> list) {
+        List<String> lastModifTimes = new ArrayList();
+        Calendar calendar = Calendar.getInstance();
+        for (File file : list) {
+            calendar.setTimeInMillis(file.lastModified());
+            lastModifTimes.add(fmt.format("%tY.%tm.%td %tT %tA", calendar, calendar, calendar, calendar, calendar).toString());
+        }
+        return lastModifTimes;
     }
 }
