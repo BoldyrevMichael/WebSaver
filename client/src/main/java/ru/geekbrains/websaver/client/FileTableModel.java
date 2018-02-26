@@ -1,25 +1,20 @@
 package ru.geekbrains.websaver.client;
 
 import javax.swing.table.AbstractTableModel;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FileTableModel extends AbstractTableModel {
 
-    private List<File> filesList;
-    private List<String> lastModifTimes;
+    ClientCore clientCore;
 
     FileTableModel(ClientCore clientCore) {
         super();
-        filesList = clientCore.clientFilesList;
-        lastModifTimes = clientCore.lastModifTimes;
+        this.clientCore = clientCore;
     }
 
     @Override
     public int getRowCount() {
-        if (filesList != null) {
-            return filesList.size() + 1;
+        if (clientCore.clientFilesList != null) {
+            return clientCore.clientFilesList.size();
         } else {
             return 0;
         }
@@ -32,16 +27,16 @@ public class FileTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        if (filesList != null) {
+        if (clientCore.clientFilesList != null) {
             switch (columnIndex) {
                 case 0:
                     return (rowIndex + 1);
                 case 1:
-                    return filesList.get(rowIndex).getName();
+                    return clientCore.clientFilesList.get(rowIndex).getName();
                 case 2:
-                    return (double) filesList.get(rowIndex).length() / 1000;
+                    return (double) clientCore.clientFilesList.get(rowIndex).length() / 1000;
                 case 3:
-                    return lastModifTimes.get(rowIndex);
+                    return clientCore.lastModifTimes.get(rowIndex);
                 default:
                     return null;
             }

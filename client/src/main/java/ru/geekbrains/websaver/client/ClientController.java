@@ -41,7 +41,6 @@ public class ClientController implements ActionListener {
             if (ret == JFileChooser.APPROVE_OPTION) {
                 File file = filechooser.getSelectedFile();
                 clientGUI.clientCore.addFile(file);
-                repaintTable();
             }
         } else if (src == clientGUI.btnDelFiles) {
 
@@ -91,13 +90,9 @@ public class ClientController implements ActionListener {
     }
 
     void onGetList() {
-        SwingUtilities.invokeLater(() -> clientGUI.cardLayout.show(clientGUI.cardPanel, "mainPanel"));
-        repaintTable();
-    }
-
-    private void repaintTable() {
+        clientGUI.fileTableModel.fireTableDataChanged();
         SwingUtilities.invokeLater(() -> {
-            clientGUI.listOfFilesTable.repaint();
+            clientGUI.cardLayout.show(clientGUI.cardPanel, "mainPanel");
         });
     }
 }

@@ -135,7 +135,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                     break;
                 case Messages.REGISTR_REQUEST:
                     if (!tokens[2].equals(tokens[3])) {
-                        Messages.getRegistrError("Пароли не совпадают!");
+                        dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пароли не совпадают!"));
                     } else {
                         synchronized (this) {
                             try {

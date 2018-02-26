@@ -45,8 +45,9 @@ public class ClientGUI extends JFrame {
     final JButton btnAddFiles = new JButton("Добавить Файл(ы)");
     final JButton btnDelFiles = new JButton("Удалить Файл(ы)");
     final JButton btnSaveFiles = new JButton("Скачать Файл(ы)");
-    final JTable listOfFilesTable;
-    private JScrollPane scrollListOfFilesTable;
+    FileTableModel fileTableModel = new FileTableModel(clientCore);
+    JTable listOfFilesTable = new JTable(fileTableModel);
+    private JScrollPane scrollListOfFilesTable = new JScrollPane(listOfFilesTable);
 
     final CardLayout cardLayout = new CardLayout();
     final JPanel cardPanel = new JPanel(cardLayout);
@@ -66,10 +67,8 @@ public class ClientGUI extends JFrame {
         buttonPanel.add(btnSaveFiles, new GBC(0, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
         buttonPanel.setPreferredSize(new Dimension(200, 0));
         mainPanal.add(buttonPanel, BorderLayout.EAST);
-        listOfFilesTable = new JTable(new FileTableModel(clientCore));
         listOfFilesTable.getColumnModel().getColumn(0).setMaxWidth(60);
         listOfFilesTable.getColumnModel().getColumn(1).setPreferredWidth(300);
-        scrollListOfFilesTable = new JScrollPane(listOfFilesTable);
         mainPanal.add(scrollListOfFilesTable, BorderLayout.CENTER);
 
         registrPanel.add(labRegLogin, new GBC(0, 0).setFill(GBC.NONE).setAnchor(GBC.EAST).setInsets(10, 0, 10, 10));
