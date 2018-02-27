@@ -67,8 +67,11 @@ public class ClientGUI extends JFrame {
         buttonPanel.add(btnSaveFiles, new GBC(0, 2).setFill(GBC.NONE).setAnchor(GBC.CENTER).setInsets(20));
         buttonPanel.setPreferredSize(new Dimension(200, 0));
         mainPanal.add(buttonPanel, BorderLayout.EAST);
-        listOfFilesTable.getColumnModel().getColumn(0).setMaxWidth(60);
-        listOfFilesTable.getColumnModel().getColumn(1).setPreferredWidth(300);
+        listOfFilesTable.getColumnModel().getColumn(0).setMaxWidth(40);
+        listOfFilesTable.getColumnModel().getColumn(1).setPreferredWidth(250);
+        listOfFilesTable.getColumnModel().getColumn(2).setPreferredWidth(40);
+        listOfFilesTable.getColumnModel().getColumn(3).setMinWidth(200);
+        listOfFilesTable.getColumnModel().getColumn(3).setMaxWidth(200);
         mainPanal.add(scrollListOfFilesTable, BorderLayout.CENTER);
 
         registrPanel.add(labRegLogin, new GBC(0, 0).setFill(GBC.NONE).setAnchor(GBC.EAST).setInsets(10, 0, 10, 10));

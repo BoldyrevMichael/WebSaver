@@ -16,7 +16,6 @@ import java.util.List;
 public class ClientCore implements DataExchangeSocketThreadListener {
 
     private ClientController clientController;
-    Formatter fmt = new Formatter();
     private ClientDataExchangeSocketThread clientDataExchangeSocketThread;
     List<File> clientFilesList;
     List<String> lastModifTimes;
@@ -40,8 +39,10 @@ public class ClientCore implements DataExchangeSocketThreadListener {
     }
 
     void login(String login, String pass) {
+        Formatter fmt = new Formatter();
         Calendar calendar = Calendar.getInstance();
         clientDataExchangeSocketThread.sendMsg(Messages.getLoginRequest(login, pass, fmt.format("%tY.%tm.%td %tT %tA", calendar, calendar, calendar, calendar, calendar).toString()));
+        fmt.close();
     }
 
     void addFile(File file) {
@@ -100,12 +101,14 @@ public class ClientCore implements DataExchangeSocketThreadListener {
         System.out.println("На клиенте завершил работу поток для обмена данными с клиентом " + socket + ".");
     }
 
-    List<String> getLastModifTimes(List<File> list) {
+    private List<String> getLastModifTimes(List<File> list) {
         List<String> lastModifTimes = new ArrayList();
         Calendar calendar = Calendar.getInstance();
         for (File file : list) {
+            Formatter fmt = new Formatter();
             calendar.setTimeInMillis(file.lastModified());
             lastModifTimes.add(fmt.format("%tY.%tm.%td %tT %tA", calendar, calendar, calendar, calendar, calendar).toString());
+            fmt.close();
         }
         return lastModifTimes;
     }
