@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ru.geekbrains</groupId>
-    <artifactId>WebSaver</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>server</artifactId>
+    <version>1.0</version>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
@@ -21,7 +21,20 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.20.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>ru.geekbrains</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
+
+<parent>
+    <groupId>ru.geekbrains</groupId>
+    <artifactId>WebSaver</artifactId>
+    <version>1.0</version>
+    <relativePath>../pom.xml</relativePath>
+</parent>
 
     <build>
         <plugins>

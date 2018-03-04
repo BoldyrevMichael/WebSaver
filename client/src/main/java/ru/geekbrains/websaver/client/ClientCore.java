@@ -6,6 +6,8 @@ import ru.geekbrains.websaver.common.Messages;
 import ru.geekbrains.websaver.common.NetworkProperties;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -49,8 +51,19 @@ public class ClientCore implements DataExchangeSocketThreadListener {
         if (clientFilesList.contains(file)) {
             return;
         }
-        clientFilesList.add(file);
         clientDataExchangeSocketThread.sendMsg(file);
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            int size = fileInputStream.available();
+            for (int i = 0; i < size; i++) {
+
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        clientFilesList.add(file);
     }
 
     @Override

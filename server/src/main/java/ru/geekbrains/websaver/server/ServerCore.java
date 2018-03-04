@@ -5,16 +5,11 @@ import ru.geekbrains.websaver.common.DataExchangeSocketThreadListener;
 import ru.geekbrains.websaver.common.Messages;
 import ru.geekbrains.websaver.common.NetworkProperties;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 public class ServerCore implements ServerSocketThreadListener, DataExchangeSocketThreadListener {
 
@@ -150,7 +145,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                                     ps.setDouble(3, 0);
                                     ps.setInt(4, 0);
                                     ps.executeUpdate();
-                                    createClientDirectory(tokens[1]);
+                                    serverDataExchangeSocketThread.clientDirectory = createClientDirectory(tokens[1]).toString();
                                     dataExchangeSocketThread.sendMsg(Messages.getRegistrOk("Вы успешно зарегистрировались!"));
                                 } else {
                                     dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином уже зарегистрирован!"));
@@ -171,14 +166,26 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                     throw new RuntimeException("Unknown message type: " + type);
             }
         } else if (parcel instanceof File) {
-            File receivedFile = (File) parcel;
-            System.out.println("Получен файл " + receivedFile.getName());
-            if (serverDataExchangeSocketThread.serverClientFilesList.contains(receivedFile)) {
-                serverDataExchangeSocketThread.serverClientFilesList.remove(receivedFile);
+            serverDataExchangeSocketThread.receivedFile = (File) parcel;
+            System.out.println("Получен файл " + serverDataExchangeSocketThread.receivedFile.getName());
+            if (serverDataExchangeSocketThread.serverClientFilesList.contains(serverDataExchangeSocketThread.receivedFile)) {
+                serverDataExchangeSocketThread.serverClientFilesList.remove(serverDataExchangeSocketThread.receivedFile);
                 System.out.println("Количество объектов после удаления " + serverDataExchangeSocketThread.serverClientFilesList.size());
             } else {
-                serverDataExchangeSocketThread.serverClientFilesList.add(receivedFile);
+                serverDataExchangeSocketThread.serverClientFilesList.add(serverDataExchangeSocketThread.receivedFile);
                 System.out.println("Количество объектов после добавления " + serverDataExchangeSocketThread.serverClientFilesList.size());
+            }
+        } else if (parcel instanceof Byte) {
+            if (serverDataExchangeSocketThread.receivedFile != null) {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(serverDataExchangeSocketThread.clientDirectory + serverDataExchangeSocketThread.receivedFile.getName())) {
+                    while ((Byte) parcel != -1) {
+    //fileOutputStream.
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -200,34 +207,39 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
         }
     }
 
-    private void createClientDirectory(String login) {
+    private File createClientDirectory(String login) {
         int i;
-        StringBuffer stringBuffer = new StringBuffer();
-        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.txt")) {
+        File f;
+        StringBuilder stringBuilder = new StringBuilder();
+        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.properties")) {
             while ((i = fileInputStream.read()) != -1) {
-                stringBuffer.append((char) i);
+                stringBuilder.append((char) i);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        stringBuffer.append("\\\\" + login);
-        new File(stringBuffer.toString()).mkdirs();
+        stringBuilder.append("\\\\").append(login);
+        f = new File(stringBuilder.toString());
+        f.mkdirs();
+        return f;
     }
 
     private ArrayList<File> getServerClientFilesList(String login) {
         int i;
-        StringBuffer stringBuffer = new StringBuffer();
-        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.txt")) {
+        StringBuilder stringBuilder = new StringBuilder();
+        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.properties")) {
             while ((i = fileInputStream.read()) != -1) {
-                stringBuffer.append((char) i);
+                stringBuilder.append((char) i);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        stringBuffer.append("\\\\" + login);
-        File clientDir = new File(stringBuffer.toString());
+        stringBuilder.append("\\\\").append(login);
+        File clientDir = new File(stringBuilder.toString());
         File[] clientFiles = clientDir.listFiles();
+        System.out.println(clientFiles);
         List<File> list = Arrays.asList(clientFiles);
+        System.out.println(list);
         return new ArrayList<>(list);
     }
 }
