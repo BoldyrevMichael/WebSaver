@@ -29,36 +29,43 @@
         </dependency>
     </dependencies>
 
-<parent>
-    <groupId>ru.geekbrains</groupId>
-    <artifactId>WebSaver</artifactId>
-    <version>1.0</version>
-    <relativePath>../pom.xml</relativePath>
-</parent>
+    <parent>
+        <groupId>ru.geekbrains</groupId>
+        <artifactId>WebSaver</artifactId>
+        <version>1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
     <build>
         <plugins>
+            <!-- Maven Assembly Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4.1</version>
                 <configuration>
+                    <!-- get all project dependencies -->
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <!-- MainClass in mainfest make a executable jar -->
                     <archive>
-                        <addMavenDescriptor>false</addMavenDescriptor>
-                        <compress>true</compress>
                         <manifest>
                             <mainClass>ru.geekbrains.websaver.server.ServerCore</mainClass>
                         </manifest>
                     </archive>
+
                 </configuration>
-                <version>2.4</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <!-- bind to the packaging phase -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
