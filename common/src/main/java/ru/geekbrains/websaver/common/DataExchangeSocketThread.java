@@ -2,6 +2,7 @@ package ru.geekbrains.websaver.common;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class DataExchangeSocketThread extends Thread {
     private final DataExchangeSocketThreadListener eventListener;
@@ -25,6 +26,12 @@ public class DataExchangeSocketThread extends Thread {
             eventListener.onReadyDataExchangeSocketThread(this, socket);
             while (!isInterrupted()) {
                 Object parcel = in.readObject();
+                if (parcel instanceof byte[]) {
+                    System.out.println("В Рид МСГ " + Arrays.toString((byte[]) parcel));
+                }
+                if (parcel instanceof String) {
+                    System.out.println("В Рид МСГ " + parcel);
+                }
                 eventListener.onReceiveMsg(this, socket, parcel);
             }
         } catch (ClassNotFoundException | IOException e) {
@@ -43,6 +50,12 @@ public class DataExchangeSocketThread extends Thread {
 
     public void sendMsg(Object msg) {
         try {
+            if (msg instanceof byte[]) {
+                System.out.println("В Сенд МСГ " + Arrays.toString((byte[]) msg));
+            }
+            if (msg instanceof String) {
+                System.out.println("В Сенд МСГ " + msg);
+            }
             out.writeObject(msg);
             out.flush();
         } catch (IOException e) {

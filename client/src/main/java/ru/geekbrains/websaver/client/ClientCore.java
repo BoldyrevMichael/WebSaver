@@ -10,10 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
 
 public class ClientCore implements DataExchangeSocketThreadListener {
 
@@ -21,6 +18,9 @@ public class ClientCore implements DataExchangeSocketThreadListener {
     private ClientDataExchangeSocketThread clientDataExchangeSocketThread;
     List<File> clientFilesList;
     List<String> lastModifTimes;
+    byte[] buffer = new byte[1024];
+    byte[] lastBuffer;
+    long numberOfBuffers;
 
     ClientCore(ClientController clientController) {
         connect();
@@ -51,19 +51,29 @@ public class ClientCore implements DataExchangeSocketThreadListener {
         if (clientFilesList.contains(file)) {
             return;
         }
+        clientFilesList.add(file);
+        numberOfBuffers = file.length() / buffer.length;
         clientDataExchangeSocketThread.sendMsg(file);
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
-            int size = fileInputStream.available();
-            for (int i = 0; i < size; i++) {
-
+            for (long i = 0; i < numberOfBuffers; i++) {
+                fileInputStream.read(buffer, 0, buffer.length);
+                //System.out.println(Arrays.toString(buffer));
+                clientDataExchangeSocketThread.sendMsg(buffer);
+                clientDataExchangeSocketThread.sendMsg(Messages.getDivide());
             }
+            if (fileInputStream.available() > 0) {
+                lastBuffer = new byte[fileInputStream.available()];
+                fileInputStream.read(lastBuffer, 0, lastBuffer.length);
+                //System.out.println(Arrays.toString(lastBuffer));
+                clientDataExchangeSocketThread.sendMsg(lastBuffer);
+            }
+            lastBuffer = null;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        clientFilesList.add(file);
+        System.out.println("Список файлов клиента в методе add" + clientFilesList);
     }
 
     @Override
@@ -83,6 +93,19 @@ public class ClientCore implements DataExchangeSocketThreadListener {
                     break;
                 case Messages.REGISTR_ERROR:
                     clientController.onRegError(tokens[1]);
+                    break;
+                case Messages.DEL_OK:
+                    onDelOkCore(tokens[1], tokens[2]);
+                    break;
+                case Messages.DEL_ERROR:
+                    clientController.onDelError(tokens[1]);
+                    break;
+                case Messages.RECEIVE_OK:
+                    lastModifTimes = getLastModifTimes(clientFilesList);
+                    clientController.onReceiveOk(tokens[1], tokens[2]);
+                    break;
+                case Messages.RECEIVE_ERROR:
+                    onReceiveErrorCore(tokens[1], tokens[2]);
                     break;
                 default:
                     throw new RuntimeException("Unknown message type: " + type);
@@ -124,5 +147,26 @@ public class ClientCore implements DataExchangeSocketThreadListener {
             fmt.close();
         }
         return lastModifTimes;
+    }
+
+    void onDelOkCore(String msg, String fileName) {
+        Iterator<File> iterator = clientFilesList.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getName().equals(fileName)) {
+                iterator.remove();
+            }
+        }
+        lastModifTimes = getLastModifTimes(clientFilesList);
+        clientController.onDelOkController(msg);
+    }
+
+    void onReceiveErrorCore(String msg, String fileName) {
+        Iterator<File> iterator = clientFilesList.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getName().equals(fileName)) {
+                iterator.remove();
+            }
+        }
+        clientController.onReceiveErrorController(msg);
     }
 }

@@ -1,9 +1,13 @@
 package ru.geekbrains.websaver.client;
 
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class ClientController implements ActionListener {
 
@@ -94,5 +98,24 @@ public class ClientController implements ActionListener {
         SwingUtilities.invokeLater(() -> {
             clientGUI.cardLayout.show(clientGUI.cardPanel, "mainPanel");
         });
+    }
+
+    void onDelError(String msg) {
+        JOptionPane.showMessageDialog(null, msg, "Неуспешное удаление файла: ", JOptionPane.WARNING_MESSAGE);
+    }
+
+    void onDelOkController(String msg) {
+        clientGUI.fileTableModel.fireTableDataChanged();
+        JOptionPane.showMessageDialog(null, msg, "Успешное удаление файла: ", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    void onReceiveOk(String msg, String fileName) {
+        System.out.println("Список файлов клиента в методе onreceiveok" + clientGUI.clientCore.clientFilesList);
+        clientGUI.fileTableModel.fireTableDataChanged();
+        JOptionPane.showMessageDialog(null, msg, "Успешное добавление файла: ", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    void onReceiveErrorController(String msg) {
+        JOptionPane.showMessageDialog(null, msg, "Неуспешное добавление файла: ", JOptionPane.WARNING_MESSAGE);
     }
 }

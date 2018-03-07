@@ -12,6 +12,13 @@ public class Messages {
     public static final String LOGIN_ERROR = "/login_error";
     public static final String LOGIN_OK = "/login_ok";
     public static final String GET_FILES = "/get_files";
+    public static final String DEL_ERROR = "/del_error";
+    public static final String DEL_OK = "/del_ok";
+    public static final String RECEIVE_ERROR = "/receive_error";
+    public static final String RECEIVE_OK = "/receive_ok";
+
+
+    public static final String DIVIDE = "/divide";
 
     // /registr_request login password repeatepassword
     public static String getRegistrRequest(String login, String password, String repeatepassword) {
@@ -46,5 +53,30 @@ public class Messages {
     // /get_files description
     public static String getFiles(String login) {
         return GET_FILES + DELIMITER + login;
+    }
+
+    // /del_error description
+    public static String getDelError(String description) {
+        return DEL_ERROR + DELIMITER + description;
+    }
+
+    // /del_ok description
+    public static String getDelOk(String description, String fileName) {
+        return DEL_OK + DELIMITER + description + DELIMITER + fileName;
+    }
+
+    // /receive_error description
+    public static String getReceiveError(String description) {
+        return RECEIVE_ERROR + DELIMITER + description;
+    }
+
+    // /receive_ok description
+    public static String getReceiveOk(String description, String fileName) {
+        return RECEIVE_OK + DELIMITER + description + DELIMITER + fileName;
+    }
+
+    // /divide description
+    public static String getDivide() {
+        return DIVIDE;
     }
 }

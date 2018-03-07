@@ -8,6 +8,7 @@ import ru.geekbrains.websaver.common.NetworkProperties;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.sql.*;
 import java.util.*;
 
@@ -20,7 +21,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
     public static void main(String[] args) {
         ServerCore serverCore = new ServerCore();
         serverCore.initDB();
-        new ServerSocketThread("ServerSocketThread", NetworkProperties.PORT, 10000, serverCore);
+        new ServerSocketThread("ServerSocketThread", NetworkProperties.PORT, 1200000, serverCore);
     }
 
     private void initDB() {
@@ -37,9 +38,10 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                     "    idOfVisit       INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                     "    loginOfClient   INTEGER REFERENCES Clients(login) ON DELETE CASCADE ON UPDATE CASCADE,\n" +
                     "    timeOfLastVisit INTEGER);");
-            disconnect();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            disconnect();
         }
     }
 
@@ -117,6 +119,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                                 ps.setString(1, tokens[1]);
                                 ps.setString(2, tokens[3]);
                                 ps.executeUpdate();
+                                serverDataExchangeSocketThread.clientDirectory = getClientDirectory(tokens[1]).toString();
                                 dataExchangeSocketThread.sendMsg(Messages.getLoginOk(tokens[1]));
                             } else {
                                 dataExchangeSocketThread.sendMsg(Messages.getLoginError("Пользователь с таким логином не зарегистрирован!"));
@@ -145,7 +148,7 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                                     ps.setDouble(3, 0);
                                     ps.setInt(4, 0);
                                     ps.executeUpdate();
-                                    serverDataExchangeSocketThread.clientDirectory = createClientDirectory(tokens[1]).toString();
+                                    getClientDirectory(tokens[1]).mkdirs();
                                     dataExchangeSocketThread.sendMsg(Messages.getRegistrOk("Вы успешно зарегистрировались!"));
                                 } else {
                                     dataExchangeSocketThread.sendMsg(Messages.getRegistrError("Пользователь с таким логином уже зарегистрирован!"));
@@ -162,29 +165,85 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
                     serverDataExchangeSocketThread.serverClientFilesList = getServerClientFilesList(tokens[1]);
                     dataExchangeSocketThread.sendMsg(serverDataExchangeSocketThread.serverClientFilesList);
                     break;
+                case Messages.DIVIDE:
+
+                    break;
                 default:
                     throw new RuntimeException("Unknown message type: " + type);
             }
         } else if (parcel instanceof File) {
             serverDataExchangeSocketThread.receivedFile = (File) parcel;
-            System.out.println("Получен файл " + serverDataExchangeSocketThread.receivedFile.getName());
             if (serverDataExchangeSocketThread.serverClientFilesList.contains(serverDataExchangeSocketThread.receivedFile)) {
-                serverDataExchangeSocketThread.serverClientFilesList.remove(serverDataExchangeSocketThread.receivedFile);
-                System.out.println("Количество объектов после удаления " + serverDataExchangeSocketThread.serverClientFilesList.size());
+                if (serverDataExchangeSocketThread.serverClientFilesList.get(serverDataExchangeSocketThread.serverClientFilesList.indexOf(serverDataExchangeSocketThread.receivedFile)).delete()) {
+                    serverDataExchangeSocketThread.serverClientFilesList.remove(serverDataExchangeSocketThread.receivedFile);
+                    System.out.println("Количество объектов после удаления " + serverDataExchangeSocketThread.serverClientFilesList.size());
+                    serverDataExchangeSocketThread.sendMsg(Messages.getDelOk("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " удалён.", serverDataExchangeSocketThread.receivedFile.getName()));
+                    serverDataExchangeSocketThread.receivedFile = null;
+                } else {
+                    System.out.println("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " не был удалён.");
+                    serverDataExchangeSocketThread.sendMsg(Messages.getDelError("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " не был удалён."));
+                    serverDataExchangeSocketThread.receivedFile = null;
+                }
             } else {
-                serverDataExchangeSocketThread.serverClientFilesList.add(serverDataExchangeSocketThread.receivedFile);
-                System.out.println("Количество объектов после добавления " + serverDataExchangeSocketThread.serverClientFilesList.size());
-            }
-        } else if (parcel instanceof Byte) {
-            if (serverDataExchangeSocketThread.receivedFile != null) {
-                try (FileOutputStream fileOutputStream = new FileOutputStream(serverDataExchangeSocketThread.clientDirectory + serverDataExchangeSocketThread.receivedFile.getName())) {
-                    while ((Byte) parcel != -1) {
-    //fileOutputStream.
-                    }
+                try {
+                    serverDataExchangeSocketThread.fileOutputStream = new FileOutputStream(new File(serverDataExchangeSocketThread.clientDirectory + "\\" + serverDataExchangeSocketThread.receivedFile.getName()));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                }
+                if (serverDataExchangeSocketThread.receivedFile.length() == 0) {
+                    try {
+                        System.out.println("Перед закрытием файлового потока");
+                        serverDataExchangeSocketThread.fileOutputStream.close();
+                    } catch (IOException e) {
+                        serverDataExchangeSocketThread.sendMsg(Messages.getReceiveError("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " не был сохранён."));
+                        e.printStackTrace();
+                    }
+                    serverDataExchangeSocketThread.serverClientFilesList.add(serverDataExchangeSocketThread.receivedFile);
+                    System.out.println("Получен файл " + serverDataExchangeSocketThread.receivedFile.getName());
+                    serverDataExchangeSocketThread.sendMsg(Messages.getReceiveOk("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " сохранён.", serverDataExchangeSocketThread.receivedFile.getName()));
+                    serverDataExchangeSocketThread.receivedFile = null;
+                    System.out.println("Количество объектов после добавления " + serverDataExchangeSocketThread.serverClientFilesList.size());
+                } else {
+                    serverDataExchangeSocketThread.numberOfBuffers = serverDataExchangeSocketThread.receivedFile.length() / serverDataExchangeSocketThread.buffer.length;
+                    System.out.println("количество буферов до if " + serverDataExchangeSocketThread.numberOfBuffers);
+                    System.out.println("размер файла до if " + serverDataExchangeSocketThread.receivedFile.length());
+                    System.out.println("остаток от деления до if" + serverDataExchangeSocketThread.receivedFile.length() % serverDataExchangeSocketThread.buffer.length);
+                    if (serverDataExchangeSocketThread.receivedFile.length() % serverDataExchangeSocketThread.buffer.length != 0) {
+                        serverDataExchangeSocketThread.numberOfBuffers++;
+                        System.out.println("количество буферов в if " + serverDataExchangeSocketThread.numberOfBuffers);
+                    }
+                }
+            }
+        } else if (parcel instanceof byte[]) {
+            System.out.println("Имя файла  в получении байт" + serverDataExchangeSocketThread.receivedFile.getName());
+            if (serverDataExchangeSocketThread.receivedFile != null) {
+                System.out.println("Количество буферов в получении byte[]" + serverDataExchangeSocketThread.numberOfBuffers);
+                if ((serverDataExchangeSocketThread.numberOfBuffers > 0) && (serverDataExchangeSocketThread.flagOfEndWrite)) {
+                    serverDataExchangeSocketThread.flagOfEndWrite = false;
+                    try {
+//                        System.out.println(Arrays.toString((byte[]) parcel));
+                        serverDataExchangeSocketThread.fileOutputStream.write((byte[]) parcel);
+                        serverDataExchangeSocketThread.fileOutputStream.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        serverDataExchangeSocketThread.sendMsg(Messages.getReceiveError("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " не был сохранён."));
+                    }
+                    serverDataExchangeSocketThread.numberOfBuffers--;
+                    serverDataExchangeSocketThread.flagOfEndWrite = true;
+                    if (serverDataExchangeSocketThread.numberOfBuffers == 0) {
+                        try {
+                            System.out.println("Перед закрытием файлового потока");
+                            serverDataExchangeSocketThread.fileOutputStream.close();
+                        } catch (IOException e) {
+                            serverDataExchangeSocketThread.sendMsg(Messages.getReceiveError("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " не был сохранён."));
+                            e.printStackTrace();
+                        }
+                        serverDataExchangeSocketThread.serverClientFilesList.add(serverDataExchangeSocketThread.receivedFile);
+                        System.out.println("Получен файл " + serverDataExchangeSocketThread.receivedFile.getName());
+                        serverDataExchangeSocketThread.sendMsg(Messages.getReceiveOk("Файл " + serverDataExchangeSocketThread.receivedFile.getName() + " сохранён.", serverDataExchangeSocketThread.receivedFile.getName()));
+                        serverDataExchangeSocketThread.receivedFile = null;
+                        System.out.println("Количество объектов после добавления " + serverDataExchangeSocketThread.serverClientFilesList.size());
+                    }
                 }
             }
         }
@@ -207,11 +266,11 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
         }
     }
 
-    private File createClientDirectory(String login) {
+    private File getClientDirectory(String login) {
         int i;
         File f;
         StringBuilder stringBuilder = new StringBuilder();
-        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.properties")) {
+        try (FileInputStream fileInputStream = new FileInputStream("server\\target\\classes\\BeginningOfClientsDir.properties")) {
             while ((i = fileInputStream.read()) != -1) {
                 stringBuilder.append((char) i);
             }
@@ -220,14 +279,13 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
         }
         stringBuilder.append("\\\\").append(login);
         f = new File(stringBuilder.toString());
-        f.mkdirs();
         return f;
     }
 
     private ArrayList<File> getServerClientFilesList(String login) {
         int i;
         StringBuilder stringBuilder = new StringBuilder();
-        try (FileInputStream fileInputStream = new FileInputStream("BeginningOfClientsDir.properties")) {
+        try (FileInputStream fileInputStream = new FileInputStream("server\\target\\classes\\BeginningOfClientsDir.properties")) {
             while ((i = fileInputStream.read()) != -1) {
                 stringBuilder.append((char) i);
             }
@@ -237,7 +295,6 @@ public class ServerCore implements ServerSocketThreadListener, DataExchangeSocke
         stringBuilder.append("\\\\").append(login);
         File clientDir = new File(stringBuilder.toString());
         File[] clientFiles = clientDir.listFiles();
-        System.out.println(clientFiles);
         List<File> list = Arrays.asList(clientFiles);
         System.out.println(list);
         return new ArrayList<>(list);
